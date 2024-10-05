@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #4cae4c;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .alert {
+            padding: 10px;
+            background-color: #f44336;
+            color: white;
+            margin-bottom: 15px;
+        }
+        .success {
+            background-color: #4CAF50;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: space-around;
+        }
+        .edit-btn, .delete-btn {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .edit-btn {
+            background-color: #f0ad4e;
+        }
+        .delete-btn {
+            background-color: #d9534f;
+        }
+        #viewAllBtn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        #viewAllBtn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Employee Management System</h1>
+        <div id="alertBox"></div>
+        <form id="employeeForm">
+            <input type="text" id="name" placeholder="Name" required>
+            <input type="text" id="department" placeholder="Department" required>
+            <input type="number" id="contactNumber" placeholder="Contact Number" required>
+            <button type="submit" id="submitBtn">Add Employee</button>
+        </form>
+        <button id="viewAllBtn">View All Employees</button>
+        <table id="employeeTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Department</th>
+                    <th>Contact Number</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="employeeList"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8080'; // Update this to match your backend URL
+        let employees = [];
+        let editingEmployeeId = null;
+
+        const employeeForm = document.getElementById('employeeForm');
+        const nameInput = document.getElementById('name');
+        const departmentInput = document.getElementById('department');
+        const contactNumberInput = document.getElementById('contactNumber');
+        const submitBtn = document.getElementById('submitBtn');
+        const employeeList = document.getElementById('employeeList');
+        const alertBox = document.getElementById('alertBox');
+        const viewAllBtn = document.getElementById('viewAllBtn');
+
+        // Fetch all employees
+        async function fetchEmployees() {
+            try {
+                const response = await fetch(`${API_URL}/viewAll`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                employees = data.allEmployees;
+                renderEmployees();
+            } catch (error) {
+                console.error('Error fetching employees:', error);
+                showAlert('Error fetching employees', 'error');
+            }
+        }
+
+        // Render employees table
+        function renderEmployees() {
+            if (employees.length === 0) {
+                employeeList.innerHTML = '<tr><td colspan="4">No employees found</td></tr>';
+                return;
+            }
+            employeeList.innerHTML = employees.map(employee => `
+                <tr>
+                    <td>${employee.Name}</td>
+                    <td>${employee.Department}</td>
+                    <td>${employee.ContactNumber}</td>
+                    <td class="action-buttons">
+                        <button class="edit-btn" onclick="editEmployee('${employee.Name}')">Edit</button>
+                        <button class="delete-btn" onclick="deleteEmployee('${employee.Name}')">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Add or update employee
+        employeeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const employee = {
+                Name: nameInput.value,
+                Department: departmentInput.value,
+                ContactNumber: contactNumberInput.value
+            };
+
+            try {
+                if (editingEmployeeId) {
+                    await updateEmployee(employee);
+                } else {
+                    await addEmployee(employee);
+                }
+                resetForm();
+                showAlert('Employee saved successfully', 'success');
+            } catch (error) {
+                showAlert('Error saving employee', 'error');
+            }
+        });
+
+        // Add new employee
+        async function addEmployee(employee) {
+            const response = await fetch(`${API_URL}/employee`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(employee)
+            });
+            if (!response.ok) {
+                throw new Error('Failed to add employee');
+            }
+        }
+
+        // Update existing employee
+        async function updateEmployee(employee) {
+            const response = await fetch(`${API_URL}/update`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(employee)
+            });
+            if (!response.ok) {
+                throw new Error('Failed to update employee');
+            }
+        }
+
+        // Delete employee
+        async function deleteEmployee(name) {
+            try {
+                const response = await fetch(`${API_URL}/delete`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ Name: name })
+                });
+                if (response.ok) {
+                    showAlert('Employee deleted successfully', 'success');
+                    fetchEmployees();
+                } else {
+                    throw new Error('Failed to delete employee');
+                }
+            } catch (error) {
+                showAlert('Error deleting employee', 'error');
+            }
+        }
+
+        // Edit employee
+        function editEmployee(name) {
+            const employee = employees.find(emp => emp.Name === name);
+            if (employee) {
+                nameInput.value = employee.Name;
+                departmentInput.value = employee.Department;
+                contactNumberInput.value = employee.ContactNumber;
+                editingEmployeeId = employee.Name;
+                submitBtn.textContent = 'Update Employee';
+            }
+        }
+
+        // Reset form
+        function resetForm() {
+            employeeForm.reset();
+            editingEmployeeId = null;
+            submitBtn.textContent = 'Add Employee';
+        }
+
+        // Show alert message
+        function showAlert(message, type) {
+            alertBox.innerHTML = `<div class="alert ${type === 'success' ? 'success' : ''}">${message}</div>`;
+            setTimeout(() => {
+                alertBox.innerHTML = '';
+            }, 3000);
+        }
+
+        // Add event listener for View All button
+        viewAllBtn.addEventListener('click', fetchEmployees);
+    </script>
+</body>
+</html>

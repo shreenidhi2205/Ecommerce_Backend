@@ -18,13 +18,12 @@ const userSchema = new mongoose.Schema({
         type:String,
         required:true,
         lowercase:true,
-        minLenght:10,
         unique:true
     },
     userType:{
         type:String,
-        default:"CUSTOMER",
-        enum:["CUSTOMER","ADMIN"]
+        default:"EMPLOYEE",
+        enum:["EMPLOYEE","ADMIN"]
     }
 },{timestamp:true,versionKey:false})
 

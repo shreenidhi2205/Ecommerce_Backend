@@ -1,16 +1,16 @@
 const mongoose =require("mongoose")
 
-const productSchema=new mongoose.Schema({
-    productName:{
+const employeeSchema=new mongoose.Schema({
+    Name:{
         type:String,
         required:true
     },
-    productPrice:{
-        type:Number,
+    Department:{
+        type:String,
         required:true
     },
-    category:{
-        type :String,
+    ContactNumber:{
+        type :Number,
         required:true
     },
     dateCreated:{
@@ -28,4 +28,4 @@ const productSchema=new mongoose.Schema({
 //     virtuals:true
 // })
 
-module.exports=mongoose.model("product",productSchema)
+module.exports=mongoose.model("employee",employeeSchema)

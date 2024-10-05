@@ -1,20 +1,20 @@
 //Create a Middleware that checks if the request body is proper and correct
-const product_model = require("../models/product.model")
-const verifyProductBody = async (req,res,next)=>{
+const employee_model = require("../models/employee.model")
+const verifyEmployeeBody = async (req,res,next)=>{
 
     try{
 
         //Check for the productName
-        if(!req.body.productName){
+        if(!req.body.Name){
             return res.status(400).send({
-                message : "Failed! Product name was not provided in the request body"
+                message : "Failed! Employee Name was not provided in the request body"
             })
         }
 
         //Check for the productPrice
-        if(!req.body.productPrice){
+        if(!req.body.Department){
             return res.status(400).send({
-                message: "Failed! Product Price was not provided in request body"
+                message: "Failed! Department was not provided in request body"
             })
         }
 
@@ -29,5 +29,5 @@ const verifyProductBody = async (req,res,next)=>{
 
 
 module.exports = {
-    verifyProductBody : verifyProductBody
+    verifyEmployeeBody : verifyEmployeeBody
 }

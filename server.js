@@ -1,17 +1,18 @@
 //This will be the starting file of the Project
 
 const express = require("express")
-import mongoose from 'mongoose'
+const mongoose =require("mongoose")
 const app = express()
 const server_config = require("./config/server.config")
 const db_config = require("./config/db.config")
 const user_model = require("./models/user.model")
 const bcrypt = require("bcryptjs")
-const product_model=require("./models/product.model")
-const category_model = require("./models/category.model")
-const cartModel = require("./models/cart.model")
+const employee_model=require("./models/employee.model")
 
 app.use(express.json())  //This is Express Middleware
+
+const cors = require('cors');
+app.use(cors());
 
 
 
@@ -64,9 +65,8 @@ async function init(){
 
 //Stich the route to the server
 require("./routes/auth.routes")(app)
-require("./routes/product.routes")(app)
-require("./routes/category.routes")(app)
-require("./routes/cart.routes")(app)
+require("./routes/employee.routes")(app)
+
 
 
 
